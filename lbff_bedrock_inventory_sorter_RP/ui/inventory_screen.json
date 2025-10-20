@@ -1,0 +1,15 @@
+{
+  "inventory_panel@common.inventory_panel": {
+    "modifications": [
+      {
+        "array_name": "controls",
+        "operation": "insert_front",
+        "value": {
+          "lbff_sort_button@common.button": {
+            "$button_text": "Sort"
+          }
+        }
+      }
+    ]
+  }
+}
