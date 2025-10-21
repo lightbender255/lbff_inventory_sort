@@ -12,7 +12,7 @@
     },
     {
       "name": "Attach using Minecraft Debugger Extension (if installed)",
-      "type": "minecraft-debug",
+      "type": "node",
       "request": "attach",
       "address": "127.0.0.1",
       "port": "${input:bedrockDebugPort}",
@@ -24,7 +24,7 @@
     {
       "id": "bedrockDebugPort",
       "type": "promptString",
-      "description": "Enter Bedrock script-host debug port (default 4711)",
+  "description": "Enter Bedrock script-host debug port (Bedrock default: 4711, Node.js default: 9299)",
       "default": "4711"
     }
   ]

@@ -20,6 +20,25 @@ CheckNetIsolation.exe LoopbackExempt -a -p=S-1-15-2-424268864-5579737-879501358-
 
 > Note: Running these commands requires Administrator privileges.
 
+## UWP Loopback Exemption (Administrator Required)
+
+If VS Code cannot attach to the UWP Minecraft client, add a loopback exemption for the UWP package so it may connect to local services.
+
+1. Open PowerShell as Administrator (right-click PowerShell -> Run as Administrator).
+2. Run the appropriate CheckNetIsolation command for your installed Minecraft package. Example for the stable build:
+
+```powershell
+CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.MinecraftUWP_8wekyb3d8bbwe"
+```
+
+To remove the exemption later:
+
+```powershell
+CheckNetIsolation.exe LoopbackExempt -r -n="Microsoft.MinecraftUWP_8wekyb3d8bbwe"
+```
+
+Alternately, run the project's development orchestrator script with `-Loopback:$true` from an elevated PowerShell; it attempts to add the exemption automatically.
+
 ## Open Visual Studio Code At The Behavior Pack Root
 
 Open VS Code in the folder that contains your behavior pack or source tree so breakpoints and paths resolve correctly. Typical locations:

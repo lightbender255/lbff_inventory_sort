@@ -1,8 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.log = log;
-exports.displayOnHUD = displayOnHUD;
-exports.logAndDisplay = logAndDisplay;
+/**
+ * Utility to stringify errors for display and logging.
+ */
+export function stringifyError(err) {
+    if (err instanceof Error) {
+        return `${err.name}: ${err.message}\n${err.stack ?? ''}`;
+    }
+    if (typeof err === 'object' && err !== null) {
+        try {
+            return JSON.stringify(err);
+        }
+        catch (e) {
+            return String(err);
+        }
+    }
+    return String(err);
+}
 /**
  * Development Logger Utility
  * Provides decoupled logging and HUD display functionality for Minecraft Bedrock addons.
@@ -16,7 +28,7 @@ const DEV_MODE = true; // Set to false in production to disable logging and HUD 
  * @param message - The message to log
  * @param data - Optional additional data (object, array, etc.)
  */
-function log(level, message, data) {
+export function log(level, message, data) {
     if (!DEV_MODE)
         return;
     const timestamp = new Date().toISOString();
@@ -34,7 +46,7 @@ function log(level, message, data) {
  * @param message - The message to display
  * @param color - Optional color code (e.g., '§a' for green, '§c' for red)
  */
-function displayOnHUD(player, message, color = '§e') {
+export function displayOnHUD(player, message, color = '§e') {
     if (!DEV_MODE)
         return;
     player.sendMessage(`${color}[DEV] ${message}`);
@@ -47,9 +59,17 @@ function displayOnHUD(player, message, color = '§e') {
  * @param data - Optional data for logging
  * @param hudColor - Optional HUD color
  */
-function logAndDisplay(player, level, message, data, hudColor = '§e') {
-    log(level, message, data);
+export function logAndDisplay(player, level, message, data, hudColor = '§e') {
+    // If the message is an error, include details
+    let displayMsg = message;
+    let logData = data;
+    if (level.toUpperCase() === 'ERROR' && data) {
+        const errString = stringifyError(data);
+        displayMsg = `${message}: ${errString}`;
+        logData = errString;
+    }
+    log(level, displayMsg, logData);
     if (player) {
-        displayOnHUD(player, message, hudColor);
+        displayOnHUD(player, displayMsg, hudColor);
     }
 }

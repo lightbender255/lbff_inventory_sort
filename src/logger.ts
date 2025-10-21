@@ -1,3 +1,19 @@
+/**
+ * Utility to stringify errors for display and logging.
+ */
+export function stringifyError(err: unknown): string {
+  if (err instanceof Error) {
+    return `${err.name}: ${err.message}\n${err.stack ?? ''}`
+  }
+  if (typeof err === 'object' && err !== null) {
+    try {
+      return JSON.stringify(err)
+    } catch (e) {
+      return String(err)
+    }
+  }
+  return String(err)
+}
 import { Player } from '@minecraft/server'
 
 /**
@@ -26,7 +42,18 @@ export function log (level: string, message: string, data?: unknown): void {
     ...(typeof data === 'object' && data !== null ? { data } : {})
   }
 
-  console.log(`[DEV_LOG] ${JSON.stringify(logEntry, null, 2)}`)
+  const line = `[DEV_LOG] ${JSON.stringify(logEntry)}`
+  console.log(line)
+
+  // Send to log entry server (dev only)
+  try {
+    const req = new XMLHttpRequest();
+    req.open("POST", "http://localhost:3000/log", true);
+    req.setRequestHeader("Content-Type", "application/json");
+    req.send(JSON.stringify({ line }));
+  } catch (e) {
+    // Ignore errors in dev logging
+  }
 }
 
 /**
@@ -56,8 +83,16 @@ export function logAndDisplay (
   data?: unknown,
   hudColor: string = '§e'
 ): void {
-  log(level, message, data)
+  // If the message is an error, include details
+  let displayMsg = message
+  let logData = data
+  if (level.toUpperCase() === 'ERROR' && data) {
+    const errString = stringifyError(data)
+    displayMsg = `${message}: ${errString}`
+    logData = errString
+  }
+  log(level, displayMsg, logData)
   if (player) {
-    displayOnHUD(player, message, hudColor)
+    displayOnHUD(player, displayMsg, hudColor)
   }
 }

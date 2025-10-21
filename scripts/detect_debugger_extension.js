@@ -11,11 +11,13 @@ if (!home) {
   process.exit(0)
 }
 
-// Common extension IDs to check (add more if you use different extensions)
+// Common extension IDs to check (add more if you use different extensions). Fallback to any folder
+// name that contains 'minecraft-debugger' for broader detection (e.g., 'mojang-studios.minecraft-debugger').
 const candidates = [
   'gamersparadise.minecraft-debugger',
   'minecraft-dev.minecraft-debugger',
-  'microsoft.minecraft-debugger'
+  'microsoft.minecraft-debugger',
+  'mojang-studios.minecraft-debugger'
 ]
 
 const extensionsDir = path.join(home, '.vscode', 'extensions')
@@ -25,6 +27,7 @@ let which = null
 try {
   const items = fs.readdirSync(extensionsDir)
   for (const item of items) {
+    // direct prefix match for known IDs
     for (const cand of candidates) {
       if (item.toLowerCase().startsWith(cand.toLowerCase())) {
         found = true
@@ -33,6 +36,13 @@ try {
       }
     }
     if (found) break
+
+    // fallback: any folder containing 'minecraft-debugger'
+    if (item.toLowerCase().includes('minecraft-debugger')) {
+      found = true
+      which = item
+      break
+    }
   }
 } catch (e) {
   // If we couldn't read extensions dir, assume not found

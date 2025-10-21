@@ -39,7 +39,12 @@ $repoRoot = Get-Location
 
 function Invoke-RunNpm([string]$script) {
   Write-Info "Running: npm run $script"
-  $p = Start-Process -FilePath npm -ArgumentList @('run', $script) -NoNewWindow -Wait -PassThru
+  # Some Windows setups fail when calling npm directly via Start-Process; use cmd /c npm for reliability
+  if ($IsWindows) {
+    $p = Start-Process -FilePath cmd.exe -ArgumentList @('/c', 'npm', 'run', $script) -NoNewWindow -Wait -PassThru
+  } else {
+    $p = Start-Process -FilePath npm -ArgumentList @('run', $script) -NoNewWindow -Wait -PassThru
+  }
   if ($p.ExitCode -ne 0) {
     Write-Err "npm run $script failed with exit code $($p.ExitCode)"
     throw "npm script failed"
@@ -82,8 +87,8 @@ function Invoke-RunNpm([string]$script) {
 
   $uwpBase = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang'
   $candidates = @(
-    @{ type='behavior'; src=$srcBP; dests=@(Join-Path $uwpBase 'development_behavior_packs\lbff_bedrock_inventory_sorter_BP', Join-Path $uwpBase 'behavior_packs\lbff_bedrock_inventory_sorter_BP') },
-    @{ type='resource'; src=$srcRP; dests=@(Join-Path $uwpBase 'development_resource_packs\lbff_bedrock_inventory_sorter_RP', Join-Path $uwpBase 'resource_packs\lbff_bedrock_inventory_sorter_RP') }
+    @{ type='behavior'; src=$srcBP; dests=@((Join-Path $uwpBase 'development_behavior_packs\lbff_bedrock_inventory_sorter_BP'), (Join-Path $uwpBase 'behavior_packs\lbff_bedrock_inventory_sorter_BP')) },
+    @{ type='resource'; src=$srcRP; dests=@((Join-Path $uwpBase 'development_resource_packs\lbff_bedrock_inventory_sorter_RP'), (Join-Path $uwpBase 'resource_packs\lbff_bedrock_inventory_sorter_RP')) }
   )
 
   $verificationFailed = $false
@@ -223,6 +228,9 @@ function Invoke-RunNpm([string]$script) {
 
   Write-Info "dev_debug_setup completed."
 } catch {
-  Write-Err "Dev setup failed: $_"
+  Write-Err "Dev setup failed: $($_.Exception.Message)"
+  Write-Err "Exception Type: $($_.Exception.GetType().FullName)"
+  if ($_.Exception.StackTrace) { Write-Err "StackTrace: $($_.Exception.StackTrace)" }
+  if ($_.ScriptStackTrace) { Write-Err "ScriptStackTrace: $($_.ScriptStackTrace)" }
   exit 1
 }

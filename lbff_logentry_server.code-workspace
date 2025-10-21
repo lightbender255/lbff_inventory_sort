@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../../tools/lbff_logentry_server"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"powershell.cwd": "lbff_logentry_server"
+	}
+}
