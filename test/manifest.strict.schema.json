@@ -14,7 +14,8 @@
         "uuid": {"type": "string", "format": "uuid"},
         "version": {"type": "array", "minItems": 3},
         "min_engine_version": {"type": "array", "minItems": 3}
-      }
+      },
+      "additionalProperties": false
     },
     "modules": {
       "type": "array",
