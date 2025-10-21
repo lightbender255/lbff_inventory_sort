@@ -31,19 +31,32 @@ try {
   // Determine target: 'client' (default) or 'bds'
   const argv = process.argv.slice(2);
   const target = argv[0] || process.env.COPY_TARGET || 'client';
+  const dryRun = argv.includes('--dry-run') || process.env.COPY_DRY_RUN === 'true';
+  const serverWide = argv.includes('--server-wide') || process.env.COPY_SERVER_WIDE === 'true';
 
   if (target === 'bds') {
     const { execSync } = require('child_process');
     const bdsRoot = process.env.COPY_BDS_ROOT || defaultBdsRoot;
     const bdsWorld = process.env.COPY_BDS_WORLD || 'worlds/';
-    // If COPY_BDS_WORLD is a simple world name, join it to worlds
-    const worldDestPath = bdsWorld.includes('worlds') ? bdsWorld : path.join('worlds', bdsWorld);
-    const bpDest = path.join(bdsRoot, worldDestPath, 'behavior_packs', path.basename(bpSrc));
-    const rpDest = path.join(bdsRoot, worldDestPath, 'resource_packs', path.basename(rpSrc));
-    copyRecursiveSync(bpSrc, bpDest);
-    copyRecursiveSync(rpSrc, rpDest);
+    // Compute destinations
+    let bpDest, rpDest;
+    if (serverWide) {
+      bpDest = path.join(bdsRoot, 'behavior_packs', path.basename(bpSrc));
+      rpDest = path.join(bdsRoot, 'resource_packs', path.basename(rpSrc));
+    } else {
+      const worldDestPath = bdsWorld.includes('worlds') ? bdsWorld : path.join('worlds', bdsWorld);
+      bpDest = path.join(bdsRoot, worldDestPath, 'behavior_packs', path.basename(bpSrc));
+      rpDest = path.join(bdsRoot, worldDestPath, 'resource_packs', path.basename(rpSrc));
+    }
 
-    console.log('All packs copied to BDS at', bdsRoot);
+    if (dryRun) {
+      console.log('[dry-run] Would copy', bpSrc, '->', bpDest);
+      console.log('[dry-run] Would copy', rpSrc, '->', rpDest);
+    } else {
+      copyRecursiveSync(bpSrc, bpDest);
+      copyRecursiveSync(rpSrc, rpDest);
+      console.log('All packs copied to BDS at', bdsRoot);
+    }
 
     // Optionally auto-start/restart the BDS to pick up the new packs.
     // Controlled by COPY_BDS_AUTO_RESTART (default: 'true'). Set to 'false' to skip restart.
@@ -56,25 +69,50 @@ try {
       const running = execSync(`powershell -NoProfile -Command "${checkCmd}"`, { encoding: 'utf8' }).trim();
 
       if (!running) {
-        // Not running: start it
+        // Not running: start it (unless dry-run)
         if (!require('fs').existsSync(bdsExe)) {
           console.warn(`BDS executable not found at ${bdsExe}; skipping auto-start.`);
+        } else if (dryRun) {
+          console.log('[dry-run] Would start bedrock_server at', bdsExe);
         } else {
           console.log('BDS not running; starting bedrock_server...');
           execSync(`powershell -NoProfile -Command "Start-Process -FilePath '${bdsExe}' -WorkingDirectory '${bdsRoot}' -NoNewWindow -PassThru"`);
           console.log('BDS started.');
         }
       } else if (autoRestart) {
-        // Running: restart to pick up new packs
+        // Running: attempt graceful restart to pick up new packs
         console.log('BDS is running (pid ' + running + '); restarting to pick up new packs...');
-        execSync(`powershell -NoProfile -Command "Get-Process -Name bedrock_server -ErrorAction SilentlyContinue | Stop-Process -Force"`);
-        // small delay
-        execSync(`powershell -NoProfile -Command "Start-Sleep -Seconds 1"`);
-        if (!require('fs').existsSync(bdsExe)) {
-          console.warn(`BDS executable not found at ${bdsExe}; unable to restart automatically.`);
+
+        if (dryRun) {
+          console.log('[dry-run] Would attempt graceful shutdown of bedrock_server (pid ' + running + ')');
         } else {
-          execSync(`powershell -NoProfile -Command "Start-Process -FilePath '${bdsExe}' -WorkingDirectory '${bdsRoot}' -NoNewWindow -PassThru"`);
-          console.log('BDS restarted.');
+          try {
+            // Try graceful close via CloseMainWindow using PowerShell
+            const closeCmd = `Get-Process -Name bedrock_server -ErrorAction SilentlyContinue | ForEach-Object { $_.CloseMainWindow() ; $_ } | Select-Object -ExpandProperty Id`;
+            execSync(`powershell -NoProfile -Command "${closeCmd}"`, { encoding: 'utf8' });
+            // Wait up to 10 seconds for process to exit
+            const waitCmd = `for ($i=0; $i -lt 10; $i++) { if (-not (Get-Process -Name bedrock_server -ErrorAction SilentlyContinue)) { exit 0 } Start-Sleep -Seconds 1 }; exit 1`;
+            const exited = execSync(`powershell -NoProfile -Command "${waitCmd}"`, { encoding: 'utf8' }).trim();
+            // If still running, force stop
+            const stillRunning = execSync(`powershell -NoProfile -Command "Get-Process -Name bedrock_server -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id"`, { encoding: 'utf8' }).trim();
+            if (stillRunning) {
+              console.log('Graceful shutdown did not complete; forcing stop...');
+              execSync(`powershell -NoProfile -Command "Get-Process -Name bedrock_server -ErrorAction SilentlyContinue | Stop-Process -Force"`);
+            }
+          } catch (err) {
+            // If any step fails, fall back to force stop
+            console.warn('Graceful shutdown failed or timed out; forcing stop:', err.message || err);
+            try { execSync(`powershell -NoProfile -Command "Get-Process -Name bedrock_server -ErrorAction SilentlyContinue | Stop-Process -Force"`); } catch (e) { /* ignore */ }
+          }
+
+          // small delay
+          execSync(`powershell -NoProfile -Command "Start-Sleep -Seconds 1"`);
+          if (!require('fs').existsSync(bdsExe)) {
+            console.warn(`BDS executable not found at ${bdsExe}; unable to restart automatically.`);
+          } else {
+            execSync(`powershell -NoProfile -Command "Start-Process -FilePath '${bdsExe}' -WorkingDirectory '${bdsRoot}' -NoNewWindow -PassThru"`);
+            console.log('BDS restarted.');
+          }
         }
       } else {
         console.log('BDS is running and auto-restart disabled; not restarting.');
