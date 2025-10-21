@@ -59,6 +59,17 @@ Always consult official Microsoft Bedrock modding documentation and samples:
 
 ---
 
+### The Development Loop
+
+1. **Plan**: Review requirements and design changes.
+2. **Develop**: Implement changes following coding standards.
+3. **Test**: Validate changes using available test suites and manual testing.
+4. **Document**: Update documentation with changes and bug fixes.
+5. **Review**: Conduct code reviews and address feedback. (AI Reviewers can be used here)
+6. **Deploy**: Merge changes and deploy to the appropriate environment.
+
+---
+
 ### Repository & Project Operations
 
 - Use the `gh` CLI for repository management:
