@@ -8,10 +8,12 @@
     "config:rp_path": "C:/Users/das_v/AppData/Local/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/development_resource_packs/lbff_bedrock_inventory_sorter_RP",
     "clean": "node scripts/clean.js",
     "build:ts": "npx tsc",
-    "copy:packs": "npm run update-manifest-names && node scripts/copy_packs.js",
+  "copy:packs": "npm run update-manifest-names && node scripts/copy_packs.js",
+  "copy:packs:bds": "npm run update-manifest-names && node scripts/copy_packs.js bds",
     "update-manifest-names": "node scripts/update_manifest_names.js",
-    "test": "vitest",
-    "build": "npm-run-all clean update-manifest-names build:ts copy:packs"
+    "test": "vitest run",
+  "build": "npm-run-all clean update-manifest-names build:ts copy:packs",
+  "build:bds": "npm-run-all clean update-manifest-names build:ts copy:packs:bds"
   },
   "keywords": [],
   "author": "lightbender255",
