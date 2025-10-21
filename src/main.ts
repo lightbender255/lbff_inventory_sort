@@ -1,23 +1,27 @@
 import { system, Entity, ItemStack, Player } from "@minecraft/server";
+import { log, logAndDisplay } from "./logger";
 
 // Listen for the scriptevent command from the UI button
 system.afterEvents.scriptEventReceive.subscribe((eventData) => {
     const { id, sourceEntity } = eventData;
+    log("INFO", "Script event received", { id, sourceEntity: sourceEntity?.nameTag || "unknown" });
     // Check for our custom event ID
     if (id === "lbff:sort_inventory" && sourceEntity && sourceEntity instanceof Player) {
+        logAndDisplay(sourceEntity, "INFO", "Inventory sort requested", { player: sourceEntity.nameTag });
         sortPlayerInventory(sourceEntity);
     }
 }, { namespaces: ["lbff"] });
 
 function sortPlayerInventory(player: Player) {
+    log("INFO", "Starting inventory sort", { player: player.nameTag });
     const inventoryComp = player.getComponent("minecraft:inventory");
     if (!inventoryComp) {
-        player.sendMessage("§cNo inventory component found!");
+        logAndDisplay(player, "ERROR", "No inventory component found", undefined, "§c");
         return;
     }
     const inventory = inventoryComp.container;
     if (!inventory) {
-        player.sendMessage("§cNo inventory container found!");
+        logAndDisplay(player, "ERROR", "No inventory container found", undefined, "§c");
         return;
     }
     const items: ItemStack[] = [];
@@ -31,8 +35,11 @@ function sortPlayerInventory(player: Player) {
         }
     }
 
+    log("INFO", "Items collected from inventory", { itemCount: items.length, inventorySize: inventory.size });
+
     // 2. Sort the array (e.g., by item ID)
     items.sort((a, b) => a.typeId.localeCompare(b.typeId));
+    log("INFO", "Items sorted by typeId");
 
     // 3. (Optional but Recommended) Consolidate stacks
     const consolidatedItems: ItemStack[] = [];
@@ -55,12 +62,14 @@ function sortPlayerInventory(player: Player) {
         }
     }
 
+    log("INFO", "Items consolidated", { originalCount: items.length, consolidatedCount: consolidatedItems.length });
+
     // 4. Write sorted and consolidated items back to inventory
     consolidatedItems.forEach(item => {
         inventory.addItem(item);
     });
 
-    player.sendMessage("§aInventory sorted!");
+    logAndDisplay(player, "INFO", "Inventory sorted successfully", { finalItemCount: consolidatedItems.length }, "§a");
 }
 
 // No custom type definitions needed; use API types

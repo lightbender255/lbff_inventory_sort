@@ -79,6 +79,8 @@ Always consult official Microsoft Bedrock modding documentation and samples:
 
 ---
 
+Log files are at `C:\Users\das_v\AppData\Local\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\logs`
+
 ### Bug Fixing & Documentation
 
 - Document all bug fixes and new features in the appropriate workspace documentation folders.
