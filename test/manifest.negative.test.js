@@ -31,4 +31,38 @@ describe('Manifest Negative Tests', () => {
     expect(valid).toBe(false);
     expect(validateStrict.errors.length).toBeGreaterThan(0);
   });
+
+  test('behavior manifest with invalid UUID should fail strict schema', () => {
+    const bpManifestPath = path.join(__dirname, '..', 'lbff_bedrock_inventory_sorter_BP', 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(bpManifestPath, 'utf8'));
+    const modified = JSON.parse(JSON.stringify(manifest));
+    // corrupt the header uuid
+    if (modified.header && modified.header.uuid) {
+      modified.header.uuid = 'not-a-uuid';
+    }
+    const valid = validateStrict(modified);
+    expect(valid).toBe(false);
+    expect(validateStrict.errors.some(e => e.instancePath.includes('header') || e.instancePath.includes('uuid'))).toBe(true);
+  });
+
+  test('resource manifest with wrong format_version should fail strict schema', () => {
+    const rpManifestPath = path.join(__dirname, '..', 'lbff_bedrock_inventory_sorter_RP', 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(rpManifestPath, 'utf8'));
+    const modified = JSON.parse(JSON.stringify(manifest));
+    modified.format_version = 1; // strict schema requires 2
+    const valid = validateStrict(modified);
+    expect(valid).toBe(false);
+    expect(validateStrict.errors.some(e => e.instancePath.includes('format_version'))).toBe(true);
+  });
+
+  test('behavior manifest with unexpected additional property should fail strict schema', () => {
+    const bpManifestPath = path.join(__dirname, '..', 'lbff_bedrock_inventory_sorter_BP', 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(bpManifestPath, 'utf8'));
+    const modified = JSON.parse(JSON.stringify(manifest));
+    modified.header.__unexpected = 'surprise';
+    const valid = validateStrict(modified);
+    // depending on strict schema additionalProperties may be false on header
+    // we assert that either validation fails or it passes but schema allows extras
+    expect(valid).toBe(false);
+  });
 });
