@@ -33,6 +33,7 @@ try {
   const target = argv[0] || process.env.COPY_TARGET || 'client';
 
   if (target === 'bds') {
+    const { execSync } = require('child_process');
     const bdsRoot = process.env.COPY_BDS_ROOT || defaultBdsRoot;
     const bdsWorld = process.env.COPY_BDS_WORLD || 'worlds/';
     // If COPY_BDS_WORLD is a simple world name, join it to worlds
@@ -41,7 +42,46 @@ try {
     const rpDest = path.join(bdsRoot, worldDestPath, 'resource_packs', path.basename(rpSrc));
     copyRecursiveSync(bpSrc, bpDest);
     copyRecursiveSync(rpSrc, rpDest);
+
     console.log('All packs copied to BDS at', bdsRoot);
+
+    // Optionally auto-start/restart the BDS to pick up the new packs.
+    // Controlled by COPY_BDS_AUTO_RESTART (default: 'true'). Set to 'false' to skip restart.
+    const autoRestart = (process.env.COPY_BDS_AUTO_RESTART || 'true').toLowerCase() !== 'false';
+    const bdsExe = path.join(bdsRoot, 'bedrock_server.exe');
+
+    try {
+      // Check for running bedrock_server process
+      const checkCmd = `Get-Process -Name bedrock_server -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id`;
+      const running = execSync(`powershell -NoProfile -Command "${checkCmd}"`, { encoding: 'utf8' }).trim();
+
+      if (!running) {
+        // Not running: start it
+        if (!require('fs').existsSync(bdsExe)) {
+          console.warn(`BDS executable not found at ${bdsExe}; skipping auto-start.`);
+        } else {
+          console.log('BDS not running; starting bedrock_server...');
+          execSync(`powershell -NoProfile -Command "Start-Process -FilePath '${bdsExe}' -WorkingDirectory '${bdsRoot}' -NoNewWindow -PassThru"`);
+          console.log('BDS started.');
+        }
+      } else if (autoRestart) {
+        // Running: restart to pick up new packs
+        console.log('BDS is running (pid ' + running + '); restarting to pick up new packs...');
+        execSync(`powershell -NoProfile -Command "Get-Process -Name bedrock_server -ErrorAction SilentlyContinue | Stop-Process -Force"`);
+        // small delay
+        execSync(`powershell -NoProfile -Command "Start-Sleep -Seconds 1"`);
+        if (!require('fs').existsSync(bdsExe)) {
+          console.warn(`BDS executable not found at ${bdsExe}; unable to restart automatically.`);
+        } else {
+          execSync(`powershell -NoProfile -Command "Start-Process -FilePath '${bdsExe}' -WorkingDirectory '${bdsRoot}' -NoNewWindow -PassThru"`);
+          console.log('BDS restarted.');
+        }
+      } else {
+        console.log('BDS is running and auto-restart disabled; not restarting.');
+      }
+    } catch (err) {
+      console.warn('Failed to auto-start/restart BDS:', err.message || err);
+    }
   } else {
     // default: client development folders
     const bpDest = clientBpDest;
