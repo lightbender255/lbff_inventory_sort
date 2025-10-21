@@ -68,7 +68,7 @@ try {
       const net = require('net')
       const managerPort = parseInt(process.env.BDS_MANAGER_PORT || '30303', 10)
 
-      const sendManager = (obj) => new Promise((resolve, reject) => {
+      const sendManager = (obj) => new Promise((resolve, _reject) => {
         const sock = new net.Socket()
         let resp = ''
         sock.setEncoding('utf8')
@@ -76,15 +76,15 @@ try {
           sock.write(JSON.stringify(obj) + '\n')
         })
         sock.on('data', (d) => { resp += d })
-        sock.on('close', () => { try { resolve(JSON.parse(resp.trim())) } catch (e) { resolve({ raw: resp }) } })
-        sock.on('error', (err) => reject(err))
+        sock.on('close', () => { try { resolve(JSON.parse(resp.trim())) } catch (_e) { resolve({ raw: resp }) } })
+        sock.on('error', (_err) => _reject(_err))
       });
 
       (async () => {
         let managerAvailable = false
         try {
           const s = new net.Socket()
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve, _reject) => {
             s.setTimeout(200)
             s.once('connect', () => { managerAvailable = true; s.destroy(); resolve() })
             s.once('timeout', () => { s.destroy(); resolve() })

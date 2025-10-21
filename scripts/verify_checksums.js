@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
 
-function getHashMap(root) {
+function getHashMap (root) {
   const map = {}
   if (!fs.existsSync(root)) return map
   const files = walkSync(root)
@@ -15,7 +15,7 @@ function getHashMap(root) {
   return map
 }
 
-function walkSync(dir) {
+function walkSync (dir) {
   let results = []
   const list = fs.readdirSync(dir)
   list.forEach(file => {
@@ -44,12 +44,12 @@ for (const c of candidates) {
   console.log(`Verifying ${c.type} pack: ${c.src}`)
   const srcMap = getHashMap(c.src)
   for (const dest of c.dests) {
-  if (!fs.existsSync(dest)) { console.warn(`Destination not found: ${dest}. Skipping`); continue }
-  anyDestinationFound = true
+    if (!fs.existsSync(dest)) { console.warn(`Destination not found: ${dest}. Skipping`); continue }
+    anyDestinationFound = true
     console.log(`Comparing to ${dest}`)
     const dstMap = getHashMap(dest)
     for (const k of Object.keys(srcMap)) {
-      if (!dstMap.hasOwnProperty(k)) {
+      if (!Object.prototype.hasOwnProperty.call(dstMap, k)) {
         console.error(`Missing file in destination: ${k}`)
         verificationFailed = true
         continue
@@ -60,7 +60,7 @@ for (const c of candidates) {
       }
     }
     for (const k of Object.keys(dstMap)) {
-      if (!srcMap.hasOwnProperty(k)) {
+      if (!Object.prototype.hasOwnProperty.call(srcMap, k)) {
         console.warn(`Extra file in destination (not in source): ${k}`)
       }
     }
@@ -76,4 +76,10 @@ if (!anyDestinationFound) {
 } else {
   console.log('Checksum verification passed')
   process.exitCode = 0
+}
+
+// Export helpers for unit testing
+module.exports = {
+  getHashMap,
+  walkSync
 }

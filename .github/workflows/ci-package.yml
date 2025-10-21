@@ -40,8 +40,61 @@ jobs:
         run: npm run build
       - name: Package .mcaddon
         run: npm run package:mcaddon
+      - name: Generate changelog
+        run: npm run changelog:generate
+      - name: Read artifact name
+        id: read_artifact
+        run: |
+          if [ -f dist/artifact_name.txt ]; then
+            ART_NAME=$(cat dist/artifact_name.txt)
+            echo "artifact_name=$ART_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "artifact_name=lbff_inventory_sorter.mcaddon" >> $GITHUB_OUTPUT
+          fi
+      - name: Extract version from artifact name
+        id: extract_version
+        run: |
+          ART=${{ steps.read_artifact.outputs.artifact_name }}
+          # Expect artifact like name-1.2.3.mcaddon
+          VERSION=$(echo "$ART" | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+)\.mcaddon/\1/')
+          if [ -z "$VERSION" ]; then
+            echo "version=0.0.0" >> $GITHUB_OUTPUT
+          else
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+      - name: Update release tag and title to include version
+        if: ${{ github.event_name == 'release' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_ID=${{ github.event.release.id }}
+          VERSION=${{ steps.extract_version.outputs.version }}
+          TAG_NAME="v${VERSION}"
+          RELEASE_NAME="lbff_inventory_sorter v${VERSION}"
+          echo "Updating release ${RELEASE_ID} -> tag ${TAG_NAME}, name ${RELEASE_NAME}"
+          API_URL="https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
+          curl -s -X PATCH -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
+            $API_URL -d "{\"tag_name\": \"${TAG_NAME}\", \"name\": \"${RELEASE_NAME}\"}" | jq '.'
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lbff-inventory-sorter-mcaddon
-          path: dist/lbff_inventory_sorter.mcaddon
+          name: ${{ steps.read_artifact.outputs.artifact_name }}
+          path: dist/${{ steps.read_artifact.outputs.artifact_name }}
+      - name: Upload to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: dist/${{ steps.read_artifact.outputs.artifact_name }}
+          asset_name: ${{ steps.read_artifact.outputs.artifact_name }}
+          asset_content_type: application/octet-stream
+      - name: Upload CHANGELOG to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: CHANGELOG.md
+          asset_name: CHANGELOG.md
+          asset_content_type: text/markdown

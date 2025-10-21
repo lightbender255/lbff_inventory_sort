@@ -51,7 +51,7 @@ if (mode === 'serve') {
   }
 
   function stopServer () {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       if (!child) return resolve({ stopped: false, reason: 'not-running' })
       try {
         console.log('Sending stop to server stdin...')

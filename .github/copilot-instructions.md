@@ -24,7 +24,7 @@ You are an expert Minecraft Bedrock addon developer and maintainer for the LBFF 
 
 ### Markdown Rules
 
-- Use headings (`## #### etc.) to organize content hierarchically.
+- Use headings (## #### etc.) to organize content hierarchically.
 - Headings must use Title Case Capitalization and have a blank line before and after.
 - Use bullet points or numbered lists for clarity.
 - Include code blocks for any code snippets or commands.

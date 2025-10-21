@@ -23,9 +23,34 @@ try {
   // ignore and use default
 }
 const rp = path.join(repoRoot, 'lbff_bedrock_inventory_sorter_RP')
-const outFile = path.join(outDir, 'lbff_inventory_sorter.mcaddon')
+// Determine artifact name using package.json version (fallback to behavior pack manifest header.version)
+let version = '0.0.0'
+try {
+  const pkgPath = path.join(repoRoot, 'package.json')
+  if (fs.existsSync(pkgPath)) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
+    if (pkg && pkg.version) version = pkg.version
+  }
+} catch (e) {
+  // ignore
+}
+// fallback to behavior pack manifest.json header.version (array)
+try {
+  const manifestPath = path.join(bp, 'manifest.json')
+  if (fs.existsSync(manifestPath)) {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+    if ((!version || version === '0.0.0') && manifest && manifest.header && Array.isArray(manifest.header.version)) {
+      version = manifest.header.version.join('.')
+    }
+  }
+} catch (e) {
+  // ignore
+}
 
-function addFolderToArchive(archive, folder, prefix) {
+const artifactBaseName = `lbff_inventory_sorter-${version}.mcaddon`
+const outFile = path.join(outDir, artifactBaseName)
+
+function addFolderToArchive (archive, folder, prefix) {
   if (!fs.existsSync(folder)) return
   const items = fs.readdirSync(folder)
   items.forEach(item => {
@@ -44,6 +69,12 @@ const output = fs.createWriteStream(outFile)
 const archive = archiver('zip', { zlib: { level: 9 } })
 output.on('close', () => {
   console.log('Packaged', archive.pointer(), 'total bytes')
+  try {
+    // write artifact name for CI consumers to read
+    fs.writeFileSync(path.join(outDir, 'artifact_name.txt'), artifactBaseName, 'utf8')
+  } catch (err) {
+    console.warn('Could not write artifact_name.txt:', err.message)
+  }
 })
 archive.on('warning', err => console.warn(err))
 archive.on('error', err => { throw err })

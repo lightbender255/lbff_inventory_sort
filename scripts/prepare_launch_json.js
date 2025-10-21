@@ -11,7 +11,6 @@ if (!fs.existsSync(baseLaunch)) {
   process.exit(2)
 }
 
-const detect = require('./detect_debugger_extension')
 let result = { found: false, extension: null }
 try {
   // detect_debugger_extension prints JSON; attempt to require its file output logic instead by executing it

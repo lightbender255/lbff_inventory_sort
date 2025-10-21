@@ -8,7 +8,7 @@ if (!fs.existsSync(logsDir)) {
   process.exit(2)
 }
 
-function latestLog() {
+function latestLog () {
   const files = fs.readdirSync(logsDir)
     .filter(f => f.toLowerCase().startsWith('contentlog'))
     .map(f => ({ f, m: fs.statSync(path.join(logsDir, f)).mtimeMs }))
@@ -35,7 +35,7 @@ stream.on('data', data => {
 })
 
 // watch for file rotation
-fs.watch(logsDir, (ev, filename) => {
+fs.watch(logsDir, (_ev, _filename) => {
   const newFile = latestLog()
   if (newFile && newFile !== file) {
     console.log('Log rotated. Now tailing:', newFile)

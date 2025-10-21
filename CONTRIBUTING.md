@@ -150,3 +150,27 @@ As part of the development workflow, test runs are saved automatically to a loca
 - Filenames: `test-output-YYYYMMDD-HHMMSS.md`
 
 These files are intended for local inspection and troubleshooting. They are not committed to the repository.
+
+## Release & CI Options
+
+When preparing releases and CI automation there are several reasonable choices with different trade-offs. We implemented a conservative default in the workflow (versioned artifact naming + release metadata update), and below are options you can consider for future changes.
+
+- Parse Version Source
+  - Current: packaging script reads `package.json` then falls back to the behavior pack `manifest.json` header.version. This keeps a single authoritative version in `package.json` for CI and packaging.
+  - Alternative: have the CI workflow read `package.json` (or `manifest.json`) directly before packaging and use that value for release metadata. This avoids extracting the version from filenames and is marginally simpler.
+
+- Git Tag Handling
+  - Current: the workflow updates the Release metadata (`tag_name` and `name`) to include `v<version>` but does not create or move a git tag ref.
+  - Option: create and push an annotated git tag from the workflow (for example `v1.2.3`). This provides a Git ref that points to the release commit. Note: pushing tags from CI requires the repo to allow the runner to push (the default `GITHUB_TOKEN` is sufficient for the same repo on regular workflows, but check branch protection rules).
+
+- Release Verification Strategy
+  - Current: `verify:checksums` compares source file hashes to copied files in UWP LocalState and is skipped (passes) when target folders are absent—this makes hosted CI runs (which don't have UWP LocalState) succeed.
+  - Option A (hosted CI friendly): verify the packaged artifact contents against source hashes inside the CI job (unzip `.mcaddon` and compare). This provides deterministic verification on hosted runners without requiring UWP paths.
+  - Option B (strict local verification): keep the current approach and run strict checks only on self-hosted Windows runners that can access the UWP LocalState paths. This validates the actual runtime copy results but requires a runner with the correct environment.
+
+- Recommended Next Steps
+  - Short term (easy): Change the workflow to read `package.json` for the version before packaging and use that value when updating release metadata. That removes any brittle filename-parsing logic.
+  - Medium: Add a step to create and push an annotated git tag `v<version>` from the workflow, and optionally protect the main branch so tags require PRs.
+  - Long term (highest confidence): Add hosted-CI artifact verification by unzipping the `.mcaddon` in CI and comparing per-file hashes to the source tree. Keep the UWP LocalState verifier for developer machines.
+
+If you want, I can implement any of the recommended steps above — tell me which one you prefer and I'll make the change and validate it locally/with a workflow change.

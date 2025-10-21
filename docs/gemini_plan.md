@@ -136,6 +136,7 @@ function sortPlayerInventory(player) {
 
     player.sendMessage("§aInventory sorted!");
 }
+
 ```
 
 ## Resource Pack (RP)

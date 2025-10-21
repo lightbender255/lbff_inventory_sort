@@ -20,7 +20,8 @@
   "prepare:launch": "node scripts/prepare_launch_json.js"
     ,"dev:uwp_debug": "powershell -ExecutionPolicy Bypass -File ./scripts/dev_debug_setup.ps1 -TailLogs:$true -CopyLaunch:$true -Loopback:$true",
     "package:mcaddon": "node scripts/package_mcaddon.js",
-    "verify:checksums": "node scripts/verify_checksums.js"
+    "verify:checksums": "node scripts/verify_checksums.js",
+    "changelog:generate": "node scripts/generate_changelog.js"
   },
   "keywords": [],
   "author": "lightbender255",
@@ -41,7 +42,7 @@
     "@typescript-eslint/eslint-plugin": "^7.14.0"
     ,"archiver": "^5.3.1"
   },
-  
+
   "vitest": {
     "globals": true
   },
