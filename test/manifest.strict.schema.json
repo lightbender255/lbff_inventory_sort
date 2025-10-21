@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bedrock Manifest Strict",
+  "type": "object",
+  "required": ["format_version", "header", "modules", "dependencies"],
+  "properties": {
+    "format_version": {"type": "integer", "enum": [2]},
+    "header": {
+      "type": "object",
+      "required": ["name", "description", "uuid", "version", "min_engine_version"],
+      "properties": {
+        "name": {"type": "string", "minLength": 3},
+        "description": {"type": "string"},
+        "uuid": {"type": "string", "format": "uuid"},
+        "version": {"type": "array", "minItems": 3},
+        "min_engine_version": {"type": "array", "minItems": 3}
+      }
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 1
+    },
+    "dependencies": {
+      "type": "array",
+      "minItems": 1
+    }
+  }
+}
