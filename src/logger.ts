@@ -1,4 +1,4 @@
-import { Player } from "@minecraft/server";
+import { Player } from '@minecraft/server'
 
 /**
  * Development Logger Utility
@@ -7,7 +7,7 @@ import { Player } from "@minecraft/server";
  */
 
 // Configuration
-const DEV_MODE = true; // Set to false in production to disable logging and HUD messages
+const DEV_MODE = true // Set to false in production to disable logging and HUD messages
 
 /**
  * Logs a message to console with structured format for AI readability.
@@ -15,18 +15,18 @@ const DEV_MODE = true; // Set to false in production to disable logging and HUD 
  * @param message - The message to log
  * @param data - Optional additional data (object, array, etc.)
  */
-export function log(level: string, message: string, data?: any): void {
-  if (!DEV_MODE) return;
+export function log (level: string, message: string, data?: unknown): void {
+  if (!DEV_MODE) return
 
-  const timestamp = new Date().toISOString();
+  const timestamp = new Date().toISOString()
   const logEntry = {
     timestamp,
     level: level.toUpperCase(),
     message,
-    ...(data && { data })
-  };
+    ...(typeof data === 'object' && data !== null ? { data } : {})
+  }
 
-  console.log(`[DEV_LOG] ${JSON.stringify(logEntry, null, 2)}`);
+  console.log(`[DEV_LOG] ${JSON.stringify(logEntry, null, 2)}`)
 }
 
 /**
@@ -35,10 +35,10 @@ export function log(level: string, message: string, data?: any): void {
  * @param message - The message to display
  * @param color - Optional color code (e.g., '§a' for green, '§c' for red)
  */
-export function displayOnHUD(player: Player, message: string, color: string = '§e'): void {
-  if (!DEV_MODE) return;
+export function displayOnHUD (player: Player, message: string, color: string = '§e'): void {
+  if (!DEV_MODE) return
 
-  player.sendMessage(`${color}[DEV] ${message}`);
+  player.sendMessage(`${color}[DEV] ${message}`)
 }
 
 /**
@@ -49,15 +49,15 @@ export function displayOnHUD(player: Player, message: string, color: string = '�
  * @param data - Optional data for logging
  * @param hudColor - Optional HUD color
  */
-export function logAndDisplay(
+export function logAndDisplay (
   player: Player | null,
   level: string,
   message: string,
-  data?: any,
+  data?: unknown,
   hudColor: string = '§e'
 ): void {
-  log(level, message, data);
+  log(level, message, data)
   if (player) {
-    displayOnHUD(player, message, hudColor);
+    displayOnHUD(player, message, hudColor)
   }
 }

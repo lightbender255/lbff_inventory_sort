@@ -1,0 +1,5 @@
+dist/
+lbff_bedrock_inventory_sorter_BP/scripts/
+lbff_bedrock_inventory_sorter_RP/
+test/results/
+node_modules/

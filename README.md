@@ -2,4 +2,13 @@
 
 ## Platform
 
-Minecraft: Bedrock Edition v
+Minecraft: Bedrock Edition
+
+## Purpose
+
+Sort player's inventory.
+
+## Future
+
+Sort the opened container.
+

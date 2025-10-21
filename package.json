@@ -11,9 +11,10 @@
   "copy:packs": "npm run update-manifest-names && node scripts/copy_packs.js",
   "copy:packs:bds": "npm run update-manifest-names && node scripts/copy_packs.js bds",
     "update-manifest-names": "node scripts/update_manifest_names.js",
-    "test": "vitest run",
-  "build": "npm-run-all clean update-manifest-names build:ts copy:packs",
-  "build:bds": "npm-run-all clean update-manifest-names build:ts copy:packs:bds"
+  "test": "node scripts/run_and_save_tests.js",
+    "build": "npm-run-all clean update-manifest-names build:ts copy:packs",
+  "build:bds": "npm-run-all clean update-manifest-names build:ts copy:packs:bds",
+    "lint": "eslint . --ext .js,.ts"
   },
   "keywords": [],
   "author": "lightbender255",
@@ -24,7 +25,14 @@
     "npm-run-all": "^4.1.5",
     "rimraf": "^5.0.5",
     "typescript": "^5.9.3",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+    "eslint": "^8.50.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.0"
+    ,"@typescript-eslint/parser": "^7.14.0",
+    "@typescript-eslint/eslint-plugin": "^7.14.0"
   },
   "vitest": {
     "globals": true

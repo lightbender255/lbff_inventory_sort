@@ -16,6 +16,16 @@ npm ci
 npm test
 ```
 
+### Linting
+
+We use ESLint to keep code consistent. Run lint locally before committing:
+
+```powershell
+npm run lint
+```
+
+The CI workflow runs lint and tests on push/PR and will upload the saved Markdown test results as a workflow artifact named `test-results`.
+
 ## Deploying Packs (Client and BDS)
 
 This project provides scripts to update pack manifests and copy the built behavior/resource packs to either the local UWP Minecraft development folders (default) or to a BDS world.
@@ -98,3 +108,12 @@ If you want, I can add:
 - A small PowerShell helper script to start/stop a BDS instance and tail logs during development.
 
 Open an issue or request here and I’ll implement the option you prefer.
+
+## Saving Test Output (Markdown)
+
+As part of the development workflow, test runs are saved automatically to a local `test/results/` folder in a Markdown-friendly format. This preserves a readable copy of the console output without tracking large or ephemeral files in source control.
+
+- Location: `test/results/` (ignored by `.gitignore`)
+- Filenames: `test-output-YYYYMMDD-HHMMSS.md`
+
+These files are intended for local inspection and troubleshooting. They are not committed to the repository.
