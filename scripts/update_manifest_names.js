@@ -2,16 +2,22 @@
 const fs = require('fs');
 const path = require('path');
 
-const configPath = path.join(__dirname, '../addon.config.json');
-const bpManifestPath = path.join(__dirname, '../lbff_bedrock_inventory_sorter_BP/manifest.json');
-const rpManifestPath = path.join(__dirname, '../lbff_bedrock_inventory_sorter_RP/manifest.json');
+let ADDON_ROOT = process.env.ADDON_ROOT || path.join(__dirname, '..');
+let configPath = path.join(ADDON_ROOT, 'addon.config.json');
+let bpManifestPath = path.join(ADDON_ROOT, 'lbff_bedrock_inventory_sorter_BP', 'manifest.json');
+let rpManifestPath = path.join(ADDON_ROOT, 'lbff_bedrock_inventory_sorter_RP', 'manifest.json');
 
+const { insertTypeBeforeLastHash } = require(path.join(__dirname, 'name_utils.js'));
 
-function insertTypeBeforeHash(baseName, type) {
-  // Insert 'type' just before the first # symbol (with a space)
-  const hashIndex = baseName.indexOf('#');
-  if (hashIndex === -1) return baseName + ` ${type}`;
-  return baseName.slice(0, hashIndex) + type + ' ' + baseName.slice(hashIndex);
+// Export for testing and allow running as a script
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports.updateManifestName = updateManifestName;
+  module.exports.main = main;
+}
+
+// If executed directly, run main
+if (require.main === module) {
+  main();
 }
 
 function updateManifestName(manifestPath, newName) {
@@ -26,12 +32,16 @@ function updateManifestName(manifestPath, newName) {
 }
 
 function main() {
+  // Recompute paths so tests can set process.env.ADDON_ROOT before calling main
+  ADDON_ROOT = process.env.ADDON_ROOT || path.join(__dirname, '..');
+  configPath = path.join(ADDON_ROOT, 'addon.config.json');
+  bpManifestPath = path.join(ADDON_ROOT, 'lbff_bedrock_inventory_sorter_BP', 'manifest.json');
+  rpManifestPath = path.join(ADDON_ROOT, 'lbff_bedrock_inventory_sorter_RP', 'manifest.json');
+
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   const baseName = config.packName;
-  const behaviorPackName = insertTypeBeforeHash(baseName, 'Behavior Pack');
-  const resourcePackName = insertTypeBeforeHash(baseName, 'Resource Pack');
+  const behaviorPackName = insertTypeBeforeLastHash(baseName, 'Behavior Pack');
+  const resourcePackName = insertTypeBeforeLastHash(baseName, 'Resource Pack');
   updateManifestName(bpManifestPath, behaviorPackName);
   updateManifestName(rpManifestPath, resourcePackName);
 }
-
-main();
