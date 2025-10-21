@@ -86,9 +86,8 @@ CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.MinecraftUWP_8wekyb3d8bbwe
 ```
 
 - Ensure BDS `server.properties` and `config/default/permissions.json` are configured for scripting when testing script-based behavior packs:
-
-	- `server.properties`: set `scripting-enabled=true` and `experiments=beta_apis` (if required)
-	- `config/default/permissions.json`: include allowed modules such as `@minecraft/server`, `@minecraft/server-ui`, `@minecraft/server-net`
+  - `server.properties`: set `scripting-enabled=true` and `experiments=beta_apis` (if required)
+  - `config/default/permissions.json`: include allowed modules such as `@minecraft/server`, `@minecraft/server-ui`, `@minecraft/server-net`
 
 ## Need help?
 
