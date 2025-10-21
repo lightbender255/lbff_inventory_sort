@@ -1,25 +1,34 @@
-# GEMINI chat log planning the add-on
+## Gemini Chat Log Planning The Add-On
 
-Here is a plan to create an inventory sorting addon for Minecraft: Bedrock Edition.
+---
 
-This project requires a Behavior Pack for the logic and a Resource Pack for the UI button. The communication between the client-side UI button and the server-side script is best handled using the /scriptevent command.
+## Overview
 
-The middle-mouse button functionality you mentioned is not directly feasible with the current Scripting API, as there isn't an event for detecting that specific input. The UI button is the most reliable method.
+This plan describes the creation of an inventory sorting addon for Minecraft: Bedrock Edition. The project uses a Behavior Pack for logic and a Resource Pack for the UI button. Communication between the client-side UI button and the server-side script is handled using the `/scriptevent` command.
+
+---
+
+## Design Notes
+
+- Middle-mouse button functionality is not feasible with the current Scripting API; use a UI button instead.
+
+---
 
 ## Behavior Pack (BP)
-The Behavior Pack will contain the script that executes the sorting logic.
 
-### manifest.json
+The Behavior Pack contains the script that executes the sorting logic.
 
-Your manifest needs to declare the script module and its dependencies.
+### Manifest Example
 
-```JSON
+Your manifest must declare the script module and its dependencies:
+
+```json
 {
   "format_version": 2,
   "header": {
     "name": "Inventory Sorter Behavior Pack",
     "description": "Sorts the player inventory.",
-    "uuid": "<UUID-1>", // Generate new UUIDs
+    "uuid": "<UUID-1>",
     "version": [1, 0, 0],
     "min_engine_version": [1, 20, 30]
   },
@@ -27,7 +36,7 @@ Your manifest needs to declare the script module and its dependencies.
     {
       "type": "script",
       "language": "javascript",
-      "uuid": "<UUID-2>", // Generate new UUIDs
+      "uuid": "<UUID-2>",
       "version": [1, 0, 0],
       "entry": "scripts/main.js"
     }
@@ -35,29 +44,53 @@ Your manifest needs to declare the script module and its dependencies.
   "dependencies": [
     {
       "module_name": "@minecraft/server",
-      "version": "1.5.0" // Or newer
+      "version": "1.5.0"
     }
   ]
 }
 ```
 
-### scripts/main.js
+---
 
-This script listens for the event triggered by the UI button and performs the sort.
+### Main Script Example
 
-```JavaScript
+This script listens for the event triggered by the UI button and performs the sort:
 
+```js
 import { world, system } from "@minecraft/server";
 
 // Listen for the scriptevent command from the UI button
 system.afterEvents.scriptEventReceive.subscribe(eventData => {
-    const { id, sourceEntity } = eventData;
-
-    // Check for our custom event ID
-    if (id === "lbff:sort_inventory" && sourceEntity) {
-        sortPlayerInventory(sourceEntity);
-    }
+  const { id, sourceEntity } = eventData;
+  // Check for our custom event ID
+  if (id === "lbff:sort_inventory" && sourceEntity) {
+    sortPlayerInventory(sourceEntity);
+  }
 }, { namespaces: ["lbff"] });
+```
+
+---
+
+## Reference Materials
+
+- Bedrock Samples (local):
+  `C:\Users\das_v\AppData\Local\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\lbff\microsoft\bedrock-samples`
+- Microsoft Samples (local):
+  `C:\Users\das_v\AppData\Local\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\lbff\microsoft\samples`
+- Bedrock Modding Reference (local):
+  `C:\Users\das_v\AppData\Local\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\lbff\microsoft\bedrock_modding_reference`
+- [Bedrock Modding Reference (online)](https://learn.microsoft.com/en-us/minecraft/creator/?view=minecraft-bedrock-stable)
+
+---
+
+## Compliance
+
+- Only use the AI rules and instructions defined in the `lbff_inventory_sort` project root. Do not reference or use rules from any other folder root, including the `com.mojang` directory.
+- Follow best practices from referenced samples and documentation.
+- Use clear, descriptive comments for all custom logic and bug fixes.
+- Ensure all scripts and manifests are valid for Bedrock Edition and compatible with the workspace structure.
+- Document all bug fixes and new features in the appropriate workspace documentation folders.
+- Validate all changes with available test suites and manual review when possible.
 
 function sortPlayerInventory(player) {
     const inventory = player.getComponent("inventory").container;
