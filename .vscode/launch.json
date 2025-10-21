@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to Bedrock Script Host (node)",
+      "type": "node",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": "${input:bedrockDebugPort}",
+      "localRoot": "C:/Users/das_v/AppData/Local/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/development_behavior_packs/lbff_bedrock_inventory_sorter_BP",
+      "remoteRoot": "/"
+    },
+    {
+      "name": "Attach using Minecraft Debugger Extension (if installed)",
+      "type": "minecraft-debug",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": "${input:bedrockDebugPort}",
+      "localRoot": "C:/Users/das_v/AppData/Local/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/development_behavior_packs/lbff_bedrock_inventory_sorter_BP",
+      "remoteRoot": "/"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "bedrockDebugPort",
+      "type": "promptString",
+      "description": "Enter Bedrock script-host debug port (default 4711)",
+      "default": "4711"
+    }
+  ]
+}

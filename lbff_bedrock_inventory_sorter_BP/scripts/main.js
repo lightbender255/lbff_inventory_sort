@@ -2,6 +2,30 @@
 Object.defineProperty(exports, '__esModule', { value: true })
 const server_1 = require('@minecraft/server')
 const logger_1 = require('./logger')
+// Startup test log and deliberate breakpoint for quick attach verification
+(0, logger_1.log)('INFO', 'LBFF Inventory Sorter startup', { time: new Date().toISOString() })
+// Useful when attaching a debugger manually; will pause execution if a debugger is attached
+debugger
+// Best-effort: write a startup marker file if Node 'fs' is available in the runtime.
+try {
+  // Some script hosts (BDS) expose Node's require and fs; UWP likely will not. Guard it.
+  // The path uses LOCALAPPDATA when available so the orchestrator running on the host can see it.
+  const maybeRequire = (typeof require === 'function') ? require : null
+  if (maybeRequire) {
+    try {
+      const fs = maybeRequire('fs')
+      const path = maybeRequire('path')
+      const outDir = process && process.env && (process.env.LOCALAPPDATA || process.env.TEMP) ? (process.env.LOCALAPPDATA || process.env.TEMP) : '.'
+      const outPath = path.join(outDir, 'lbff_inventory_sorter_startup.txt')
+      fs.writeFileSync(outPath, 'started ' + new Date().toISOString() + '\n')
+      (0, logger_1.log)('INFO', 'Wrote startup marker', { path: outPath })
+    } catch (e) {
+      (0, logger_1.log)('WARN', 'Startup marker write not available in this host', { error: String(e) })
+    }
+  }
+} catch (e) {
+  /* swallow - non-critical */
+}
 // Listen for the scriptevent command from the UI button
 server_1.system.afterEvents.scriptEventReceive.subscribe((eventData) => {
   const { id, sourceEntity } = eventData;

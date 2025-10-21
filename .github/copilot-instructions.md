@@ -47,7 +47,8 @@ Always consult official Microsoft Bedrock modding documentation and samples:
   `C:\Users\das_v\AppData\Local\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\lbff\microsoft\samples`
 - **Bedrock Modding Reference (local):**
   `C:\Users\das_v\AppData\Local\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\lbff\microsoft\bedrock_modding_reference`
-- **Bedrock Modding Reference (online):** [Bedrock Modding Reference](https://learn.microsoft.com/en-us/minecraft/creator/?view=minecraft-bedrock-stable)
+- **Bedrock Modding Reference (External Web):**
+  https://learn.microsoft.com/en-us/minecraft/creator/?view=minecraft-bedrock-stable
 
 ---
 

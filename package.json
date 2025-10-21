@@ -14,7 +14,13 @@
   "test": "node scripts/run_and_save_tests.js",
     "build": "npm-run-all clean update-manifest-names build:ts copy:packs",
   "build:bds": "npm-run-all clean update-manifest-names build:ts copy:packs:bds",
-    "lint": "eslint . --ext .js,.ts"
+  "lint": "eslint . --ext .js,.ts",
+  "detect:debugger": "node scripts/detect_debugger_extension.js",
+  "verify:start": "node scripts/wait_for_startup_log.js",
+  "prepare:launch": "node scripts/prepare_launch_json.js"
+    ,"dev:uwp_debug": "powershell -ExecutionPolicy Bypass -File ./scripts/dev_debug_setup.ps1 -TailLogs:$true -CopyLaunch:$true -Loopback:$true",
+    "package:mcaddon": "node scripts/package_mcaddon.js",
+    "verify:checksums": "node scripts/verify_checksums.js"
   },
   "keywords": [],
   "author": "lightbender255",
@@ -33,7 +39,9 @@
     "eslint-plugin-promise": "^6.1.0"
     ,"@typescript-eslint/parser": "^7.14.0",
     "@typescript-eslint/eslint-plugin": "^7.14.0"
+    ,"archiver": "^5.3.1"
   },
+  
   "vitest": {
     "globals": true
   },

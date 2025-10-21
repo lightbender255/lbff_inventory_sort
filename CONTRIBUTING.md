@@ -107,6 +107,39 @@ If you want, I can add:
 - A `dry-run` mode to preview which files will be copied without writing.
 - A small PowerShell helper script to start/stop a BDS instance and tail logs during development.
 
+## Development Debug Orchestration (UWP)
+
+This repository includes helper scripts to automate a fast developer debug loop for the UWP Minecraft client.
+
+- `scripts/dev_debug_setup.ps1` — PowerShell orchestrator that runs the build/copy steps, verifies copied files by checksum, prepares a VS Code launch configuration, optionally adds the UWP loopback exemption, and waits for the addon to signal startup via a timestamped marker file (fast) with a fallback to tailing ContentLog files.
+  - Usage (repo root):
+
+    ```powershell
+    npm run dev:uwp_debug
+    # or run directly with parameters:
+    powershell -ExecutionPolicy Bypass -File ./scripts/dev_debug_setup.ps1 -MarkerTimeout 60 -Interactive:$true -Loopback:$true
+    ```
+  - Parameters:
+    - `-MarkerTimeout <seconds>` — maximum time to wait for the startup marker file (default 60s).
+    - `-VerifyMarker` — require updated LastWriteTimeUtc for the marker file (default true).
+    - `-Interactive` — prompt before copying generated `launch.generated.json` to `launch.json` (default false).
+    - `-Loopback` — attempt to add UWP loopback exemption (may require elevation).
+
+- `scripts/wait_for_startup_log.js` — Node script that tails ContentLog files and exits when the startup marker is found. Used as a fallback if the file-marker approach fails.
+- `scripts/detect_debugger_extension.js` + `scripts/prepare_launch_json.js` — helpers to detect whether you have the Minecraft Debugger extension installed and to generate a `launch.generated.json` that uses `minecraft-debug` or `node` accordingly.
+
+## VS Code Launch Config
+
+The project contains `.vscode/launch.json` and a generated `.vscode/launch.generated.json`.
+The generated file will contain two attach configurations (node + `minecraft-debug`). Use `npm run prepare:launch` to regenerate it based on the extensions present in your environment. `dev_debug_setup.ps1` will copy the generated file to `.vscode/launch.json` by default (configurable via `-Interactive`).
+
+## Verification: Checksums and Marker
+
+- After copying packs, the orchestrator computes SHA-256 hashes for all files in the source pack directories and compares them against the copied files in the UWP LocalState (both `development_*` and runtime pack folders). Any missing files or hash mismatches cause the script to abort so you don't continue with an inconsistent deploy.
+- When scripts start in the client, the addon attempts a best-effort write of the file `%LOCALAPPDATA%\lbff_inventory_sorter_startup.txt`. The orchestrator waits for this file and (optionally) verifies the file's LastWriteTimeUtc to ensure the client actually started the new code.
+
+If you'd like finer-grained verification (per-file hash reports written to disk, or automatic retry-and-verify), open an issue and I can add it.
+
 Open an issue or request here and I’ll implement the option you prefer.
 
 ## Saving Test Output (Markdown)
